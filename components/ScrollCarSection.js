@@ -2,129 +2,118 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Image from "next/image";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const STAT_BOXES = [
   {
-    id: "box-1",
-    pct: "98%",
-    label: "CLIENT SATISFACTION",
-    desc: "Top tier performance & feedback",
-    bg: "#f39c12", // Yellow / Gold
-    textColor: "#000",
-    pos: { top: "12%", left: "18%" },
-    scrollTriggerStart: 0.12,
+    id: "box1",
+    num: "58%",
+    label: "Increase in pick up point use",
+    bg: "#def54f",
+    color: "#111",
+    style: { top: "6%", right: "32%" },
+    startPct: 0.2,
   },
   {
-    id: "box-2",
-    pct: "150+",
-    label: "PROJECTS DELIVERED",
-    desc: "Seamless full-stack builds",
-    bg: "#3498db", // Blue
-    textColor: "#fff",
-    pos: { bottom: "12%", left: "40%" },
-    scrollTriggerStart: 0.38,
+    id: "box2",
+    num: "23%",
+    label: "Decreased in customer phone calls",
+    bg: "#6ac9ff",
+    color: "#111",
+    style: { bottom: "6%", right: "37%" },
+    startPct: 0.4,
   },
   {
-    id: "box-3",
-    pct: "5 ★",
-    label: "EXCELLENCE RATING",
-    desc: "Vetted motion & UI design",
-    bg: "#2c3e50", // Dark
-    textColor: "#fff",
-    pos: { top: "12%", left: "64%" },
-    scrollTriggerStart: 0.62,
+    id: "box3",
+    num: "27%",
+    label: "Increase in pick up point use",
+    bg: "#333",
+    color: "#fff",
+    style: { top: "6%", right: "8%" },
+    startPct: 0.6,
   },
   {
-    id: "box-4",
-    pct: "< 10ms",
-    label: "LATENCY SPEED",
-    desc: "Optimized 60fps GSAP pipeline",
-    bg: "#e67e22", // Orange
-    textColor: "#fff",
-    pos: { bottom: "12%", left: "82%" },
-    scrollTriggerStart: 0.82,
+    id: "box4",
+    num: "40%",
+    label: "Decreased in customer phone calls",
+    bg: "#fa7328",
+    color: "#111",
+    style: { bottom: "6%", right: "12%" },
+    startPct: 0.8,
   },
 ];
 
-const HEADLINE_TEXT = "WELCOME ITZFIZZ";
+const HEADLINE_LETTERS = "WELCOME ITZFIZZ".split("");
 
 export default function ScrollCarSection() {
   const sectionRef = useRef(null);
+  const trackRef = useRef(null);
   const carRef = useRef(null);
   const trailRef = useRef(null);
+  const valueAddRef = useRef(null);
   const letterRefs = useRef([]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Timeline for car movement + green trail across scroll
-      const tl = gsap.timeline({
+      const car = carRef.current;
+      const trail = trailRef.current;
+      const letters = letterRefs.current;
+      const valueAdd = valueAddRef.current;
+
+      if (!car || !trail || !valueAdd) return;
+
+      const roadWidth = window.innerWidth;
+      const carWidth = car.offsetWidth || 380;
+      const endX = roadWidth - carWidth;
+
+      // 1. Scroll-driven timeline for car movement & trail reveal
+      gsap.to(car, {
+        x: endX,
+        ease: "none",
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
-          end: "bottom bottom",
-          scrub: 1.2,
+          end: "bottom top",
+          scrub: true,
+          pin: trackRef.current,
+          onUpdate: (self) => {
+            const currentCarX = gsap.getProperty(car, "x") + carWidth / 2;
+            const valueRect = valueAdd.getBoundingClientRect();
+
+            // Reveal letters as car passes over them
+            letters.forEach((letter) => {
+              if (!letter) return;
+              const letterX = letter.getBoundingClientRect().left;
+              if (currentCarX >= letterX - valueRect.left / 2) {
+                letter.style.opacity = "1";
+              } else {
+                letter.style.opacity = "0";
+              }
+            });
+
+            // Expand green trail behind car
+            gsap.set(trail, { width: currentCarX });
+          },
         },
       });
 
-      // 1. Car moves from left (-15%) to right (110%)
-      tl.fromTo(
-        carRef.current,
-        { left: "-15%" },
-        { left: "110%", ease: "none" },
-        0
-      );
-
-      // 2. Green trail width grows behind car (0% to 100%)
-      tl.fromTo(
-        trailRef.current,
-        { width: "0%" },
-        { width: "100%", ease: "none" },
-        0
-      );
-
-      // 3. Letters reveal as car drives over them
-      letterRefs.current.forEach((letter, index) => {
-        if (!letter) return;
-        const letterProgress = index / HEADLINE_TEXT.length;
-        tl.to(
-          letter,
-          {
-            color: "#39ff14",
-            textShadow: "0 0 15px rgba(57, 255, 20, 0.9), 0 0 30px rgba(57, 255, 20, 0.4)",
-            scale: 1.15,
-            duration: 0.05,
-            yoyo: true,
-            repeat: 1,
-            ease: "power1.inOut",
-          },
-          letterProgress * 0.85
-        );
-      });
-
-      // 4. Stat boxes animate in based on scroll depth
+      // 2. Animate stat boxes in on scroll scrub
       STAT_BOXES.forEach((box) => {
         const el = document.getElementById(box.id);
         if (!el) return;
 
-        gsap.fromTo(
-          el,
-          { opacity: 0, y: 30, scale: 0.85 },
-          {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            duration: 0.6,
-            ease: "back.out(1.7)",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: `top+=${box.scrollTriggerStart * 100}% top`,
-              toggleActions: "play reverse play reverse",
-            },
-          }
-        );
+        gsap.to(el, {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: `top+=${box.startPct * 1000} top`,
+            end: `top+=${box.startPct * 1000 + 200} top`,
+            scrub: true,
+          },
+        });
       });
     }, sectionRef);
 
@@ -136,107 +125,71 @@ export default function ScrollCarSection() {
       ref={sectionRef}
       id="scroll-section"
       className="relative w-full"
-      style={{ height: "300vh", background: "#111" }}
+      style={{ height: "250vh", backgroundColor: "#121212" }}
     >
-      {/* Sticky viewport track container */}
+      {/* Sticky Track Viewport */}
       <div
-        className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-center items-center select-none"
+        ref={trackRef}
+        className="sticky top-0 w-full h-screen flex items-center justify-center overflow-hidden select-none"
         style={{ backgroundColor: "#d1d1d1" }}
       >
-        {/* Track Title / Subtitle Header */}
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 text-center z-20 pointer-events-none">
-          <p className="text-xs font-bold tracking-[0.4em] uppercase text-gray-700">
-            SCROLL-DRIVEN RACE TRACK
-          </p>
-          <p className="text-[11px] font-medium tracking-widest text-gray-500 mt-1">
-            MCLAREN 720S &bull; REVEAL ANIMATION
-          </p>
-        </div>
-
-        {/* 4 Stat Boxes positioned on the track area */}
+        {/* Stat Boxes */}
         {STAT_BOXES.map((box) => (
           <div
             key={box.id}
             id={box.id}
-            className="absolute z-30 p-5 rounded-2xl shadow-2xl flex flex-col items-center text-center pointer-events-none transition-transform duration-300"
+            className="absolute z-10 flex flex-col justify-center items-start gap-1 p-6 rounded-2xl shadow-xl transition-all pointer-events-none"
             style={{
               backgroundColor: box.bg,
-              color: box.textColor,
-              minWidth: "180px",
-              boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              ...box.pos,
-              transform: "translate(-50%, -50%)",
+              color: box.color,
+              opacity: 0,
+              transform: "scale(0.9) translateY(20px)",
+              minWidth: "220px",
+              maxWidth: "280px",
+              ...box.style,
             }}
           >
-            <span className="text-3xl font-black tracking-tight mb-1">
-              {box.pct}
+            <span className="text-5xl font-extrabold tracking-tight">
+              {box.num}
             </span>
-            <span className="text-[10px] font-bold tracking-widest uppercase opacity-90">
+            <span className="text-xs font-semibold uppercase tracking-wider opacity-90">
               {box.label}
-            </span>
-            <span className="text-[11px] font-medium opacity-75 mt-0.5">
-              {box.desc}
             </span>
           </div>
         ))}
 
-        {/* Central Road Canvas */}
+        {/* Central Road */}
         <div
-          className="relative w-full flex items-center justify-center"
-          style={{ height: "240px", backgroundColor: "#18181b" }}
+          className="relative w-full overflow-hidden"
+          style={{ height: "200px", backgroundColor: "#1e1e1e" }}
         >
-          {/* Yellow outer boundary lines */}
-          <div
-            className="absolute top-0 left-0 right-0 h-1.5"
-            style={{ background: "#f59e0b" }}
-          />
-          <div
-            className="absolute bottom-0 left-0 right-0 h-1.5"
-            style={{ background: "#f59e0b" }}
-          />
-
-          {/* White dashed road line */}
-          <div
-            className="absolute w-full flex justify-between px-4 z-0"
-            style={{ top: "50%", transform: "translateY(-50%)" }}
-          >
-            {Array.from({ length: 30 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-1 w-8 rounded-full"
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-              />
-            ))}
-          </div>
-
-          {/* Green Trail line that expands behind car */}
+          {/* Green Trail behind car */}
           <div
             ref={trailRef}
-            className="absolute left-0 z-10 pointer-events-none"
-            style={{
-              top: "50%",
-              transform: "translateY(-50%)",
-              height: "6px",
-              background:
-                "linear-gradient(90deg, transparent 0%, #39ff14 30%, #39ff14 100%)",
-              boxShadow:
-                "0 0 15px #39ff14, 0 0 30px #39ff14, 0 0 45px rgba(57,255,20,0.8)",
-              borderRadius: "3px",
-            }}
+            className="absolute top-0 left-0 z-1 pointer-events-none"
+            style={{ height: "200px", width: 0, backgroundColor: "#45db7d" }}
           />
 
-          {/* Headline letters on road path */}
-          <div className="relative z-10 flex items-center justify-center gap-2 md:gap-4 font-black tracking-widest text-2xl md:text-5xl pointer-events-none">
-            {HEADLINE_TEXT.split("").map((char, index) => (
+          {/* Letter Reveal ("WELCOME ITZFIZZ") */}
+          <div
+            ref={valueAddRef}
+            className="absolute z-5 flex gap-2 md:gap-4 font-black tracking-widest pointer-events-none"
+            style={{
+              top: "22%",
+              left: "5%",
+              fontSize: "clamp(2.5rem, 6.5vw, 6.8rem)",
+            }}
+          >
+            {HEADLINE_LETTERS.map((char, index) => (
               <span
                 key={index}
                 ref={(el) => (letterRefs.current[index] = el)}
-                className="transition-colors duration-200"
+                className="transition-opacity duration-150"
                 style={{
-                  color: char === " " ? "transparent" : "rgba(255,255,255,0.25)",
+                  color: "#111",
+                  opacity: 0,
                   display: "inline-block",
-                  minWidth: char === " " ? "1rem" : "auto",
+                  minWidth: char === " " ? "1.5rem" : "auto",
                 }}
               >
                 {char === " " ? "\u00A0" : char}
@@ -244,59 +197,22 @@ export default function ScrollCarSection() {
             ))}
           </div>
 
-          {/* Top-Down McLaren Car Container */}
-          <div
+          {/* Top-Down McLaren Car (Downloaded Official 4K Reference PNG) */}
+          <img
             ref={carRef}
-            className="absolute z-20 pointer-events-none flex items-center"
+            src="/mclaren-top.png"
+            alt="McLaren 720S Top View"
+            className="absolute top-0 left-0 z-10 pointer-events-none object-contain"
             style={{
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "200px",
-              height: "100px",
+              height: "200px",
+              width: "auto",
+              display: "block",
             }}
-          >
-            <Image
-              src="/mclaren-top.png"
-              alt="Orange McLaren Top View Cutout"
-              width={220}
-              height={120}
-              className="object-contain"
-              style={{
-                filter: "drop-shadow(0 12px 20px rgba(0,0,0,0.7))",
-                width: "auto",
-                height: "auto",
-              }}
-              priority
-            />
-          </div>
-        </div>
-
-        {/* Progress Bar & Instructions at bottom */}
-        <div className="absolute bottom-6 flex flex-col items-center gap-2 z-20 pointer-events-none">
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-mono tracking-widest text-gray-600">
-              START
-            </span>
-            <div
-              className="relative w-48 h-1 rounded-full overflow-hidden"
-              style={{ backgroundColor: "rgba(0,0,0,0.15)" }}
-            >
-              <div
-                id="progress-bar"
-                className="h-full rounded-full transition-all duration-75"
-                style={{ backgroundColor: "#10b981", width: "0%" }}
-              />
-            </div>
-            <span className="text-[10px] font-mono tracking-widest text-gray-600">
-              FINISH
-            </span>
-          </div>
-          <span className="text-[10px] font-medium tracking-widest uppercase text-gray-500">
-            Scroll down to drive
-          </span>
+          />
         </div>
       </div>
     </section>
   );
 }
+
 
