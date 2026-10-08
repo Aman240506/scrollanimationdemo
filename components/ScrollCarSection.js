@@ -12,8 +12,8 @@ const STAT_BOXES = [
     label: "Increase in pick up point use",
     bg: "#def54f",
     color: "#111",
-    style: { top: "8%", left: "15%" },
-    startPct: 0.15,
+    style: { top: "10%", left: "12%" },
+    revealPct: 0.15,
   },
   {
     id: "box2",
@@ -21,8 +21,8 @@ const STAT_BOXES = [
     label: "Decreased in customer phone calls",
     bg: "#6ac9ff",
     color: "#111",
-    style: { bottom: "8%", left: "38%" },
-    startPct: 0.38,
+    style: { bottom: "10%", left: "38%" },
+    revealPct: 0.38,
   },
   {
     id: "box3",
@@ -30,8 +30,8 @@ const STAT_BOXES = [
     label: "Increase in pick up point use",
     bg: "#333",
     color: "#fff",
-    style: { top: "8%", left: "62%" },
-    startPct: 0.62,
+    style: { top: "10%", left: "62%" },
+    revealPct: 0.62,
   },
   {
     id: "box4",
@@ -39,8 +39,8 @@ const STAT_BOXES = [
     label: "Decreased in customer phone calls",
     bg: "#fa7328",
     color: "#111",
-    style: { bottom: "8%", left: "82%" },
-    startPct: 0.82,
+    style: { bottom: "10%", left: "84%" },
+    revealPct: 0.82,
   },
 ];
 
@@ -51,7 +51,6 @@ export default function ScrollCarSection() {
   const trackRef = useRef(null);
   const carRef = useRef(null);
   const trailRef = useRef(null);
-  const valueAddRef = useRef(null);
   const letterRefs = useRef([]);
 
   useEffect(() => {
@@ -59,39 +58,40 @@ export default function ScrollCarSection() {
       const car = carRef.current;
       const trail = trailRef.current;
       const letters = letterRefs.current;
-      const valueAdd = valueAddRef.current;
 
-      if (!car || !trail || !valueAdd) return;
+      if (!car || !trail) return;
 
       const roadWidth = window.innerWidth;
-      const carWidth = car.offsetWidth || 230;
-      const endX = roadWidth - carWidth + 60;
+      const startX = -180;
+      const endX = roadWidth + 50;
 
-      // 1. Scroll-driven timeline for car movement & trail reveal
+      // Master Scroll-Driven Animation
       gsap.fromTo(
         car,
-        { x: -100 },
+        { x: startX },
         {
           x: endX,
           ease: "none",
           scrollTrigger: {
             trigger: sectionRef.current,
             start: "top top",
-            end: "bottom top",
-            scrub: 1.2,
-            pin: trackRef.current,
+            end: "bottom bottom",
+            scrub: 1,
             onUpdate: (self) => {
-              const currentCarX = gsap.getProperty(car, "x") + carWidth / 2;
-              const valueRect = valueAdd.getBoundingClientRect();
+              const progress = self.progress; // 0 to 1
 
-              // Reveal letters as car passes over them
-              letters.forEach((letter) => {
+              // 1. Expand trail behind car
+              gsap.set(trail, { width: `${progress * 100}%` });
+
+              // 2. Reveal letters sequentially as car travels
+              letters.forEach((letter, i) => {
                 if (!letter) return;
-                const letterX = letter.getBoundingClientRect().left;
-                if (currentCarX >= letterX - valueRect.left / 2) {
+                const letterProgress = i / letters.length;
+                if (progress >= letterProgress) {
                   letter.style.opacity = "1";
                   letter.style.color = "#39ff14";
-                  letter.style.textShadow = "0 0 15px rgba(57, 255, 20, 0.8)";
+                  letter.style.textShadow =
+                    "0 0 15px rgba(57, 255, 20, 0.8), 0 0 30px rgba(57, 255, 20, 0.4)";
                 } else {
                   letter.style.opacity = "0.2";
                   letter.style.color = "#111";
@@ -99,35 +99,22 @@ export default function ScrollCarSection() {
                 }
               });
 
-              // Expand green trail behind car
-              gsap.set(trail, { width: Math.max(0, currentCarX) });
+              // 3. Stat boxes pop-in
+              STAT_BOXES.forEach((box) => {
+                const el = document.getElementById(box.id);
+                if (!el) return;
+                if (progress >= box.revealPct - 0.05 && progress <= box.revealPct + 0.2) {
+                  el.style.opacity = "1";
+                  el.style.transform = "scale(1) translateY(0)";
+                } else {
+                  el.style.opacity = "0";
+                  el.style.transform = "scale(0.85) translateY(20px)";
+                }
+              });
             },
           },
         }
       );
-
-      // 2. Animate stat boxes in on scroll scrub
-      STAT_BOXES.forEach((box) => {
-        const el = document.getElementById(box.id);
-        if (!el) return;
-
-        gsap.fromTo(
-          el,
-          { opacity: 0, scale: 0.85, y: 25 },
-          {
-            opacity: 1,
-            scale: 1,
-            y: 0,
-            duration: 0.6,
-            ease: "back.out(1.5)",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: `top+=${box.startPct * 100}% top`,
-              toggleActions: "play reverse play reverse",
-            },
-          }
-        );
-      });
     }, sectionRef);
 
     return () => ctx.revert();
@@ -138,12 +125,12 @@ export default function ScrollCarSection() {
       ref={sectionRef}
       id="scroll-section"
       className="relative w-full"
-      style={{ height: "280vh", backgroundColor: "#121212" }}
+      style={{ height: "300vh", backgroundColor: "#121212" }}
     >
       {/* Sticky Track Viewport */}
       <div
         ref={trackRef}
-        className="sticky top-0 w-full h-screen flex items-center justify-center overflow-hidden select-none"
+        className="sticky top-0 w-full h-screen flex flex-col items-center justify-center overflow-hidden select-none z-10"
         style={{ backgroundColor: "#d1d1d1" }}
       >
         {/* Track Title */}
@@ -158,11 +145,12 @@ export default function ScrollCarSection() {
           <div
             key={box.id}
             id={box.id}
-            className="absolute z-20 flex flex-col justify-center items-start gap-1 p-5 md:p-6 rounded-2xl shadow-2xl transition-all pointer-events-none"
+            className="absolute z-20 flex flex-col justify-center items-start gap-1 p-5 md:p-6 rounded-2xl shadow-2xl transition-all duration-300 pointer-events-none"
             style={{
               backgroundColor: box.bg,
               color: box.color,
               opacity: 0,
+              transform: "scale(0.85) translateY(20px)",
               minWidth: "200px",
               maxWidth: "260px",
               boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
@@ -210,7 +198,7 @@ export default function ScrollCarSection() {
           {/* Green Trail behind car */}
           <div
             ref={trailRef}
-            className="absolute top-0 left-0 h-full z-1 pointer-events-none"
+            className="absolute top-0 left-0 h-full z-1 pointer-events-none transition-all"
             style={{
               width: 0,
               background:
@@ -221,7 +209,6 @@ export default function ScrollCarSection() {
 
           {/* Letter Reveal ("WELCOME ITZFIZZ") */}
           <div
-            ref={valueAddRef}
             className="absolute z-5 flex gap-2 md:gap-3 font-black tracking-widest pointer-events-none"
             style={{
               top: "50%",
@@ -247,7 +234,7 @@ export default function ScrollCarSection() {
             ))}
           </div>
 
-          {/* Sleek, Smaller Top-Down McLaren Car (Official 4K Reference PNG, Centered Vertically) */}
+          {/* Sleek Top-Down McLaren Car */}
           <img
             ref={carRef}
             src="/mclaren-top.png"
@@ -266,6 +253,7 @@ export default function ScrollCarSection() {
     </section>
   );
 }
+
 
 
 
