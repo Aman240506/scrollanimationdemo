@@ -28,7 +28,7 @@ export default function Navbar() {
       <div className="flex items-center gap-2">
         <span
           className="text-xl font-black tracking-widest"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          style={{ fontFamily: "var(--font-display)" }}
         >
           <span className="text-white">ItZ</span>
           <span style={{ color: "#39ff14" }}>FiZZ</span>

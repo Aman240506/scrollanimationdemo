@@ -6,99 +6,124 @@ import Image from "next/image";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const MILESTONES = [
+const STAT_BOXES = [
   {
-    id: "ms-1",
-    title: "Full Throttle",
-    desc: "Zero to hero — max speed from the start",
-    scrollPct: 0.08,
-    side: "top",
+    id: "box-1",
+    pct: "98%",
+    label: "CLIENT SATISFACTION",
+    desc: "Top tier performance & feedback",
+    bg: "#f39c12", // Yellow / Gold
+    textColor: "#000",
+    pos: { top: "12%", left: "18%" },
+    scrollTriggerStart: 0.12,
   },
   {
-    id: "ms-2",
-    title: "Mid Sprint",
-    desc: "Momentum builds with every pixel scrolled",
-    scrollPct: 0.45,
-    side: "bottom",
+    id: "box-2",
+    pct: "150+",
+    label: "PROJECTS DELIVERED",
+    desc: "Seamless full-stack builds",
+    bg: "#3498db", // Blue
+    textColor: "#fff",
+    pos: { bottom: "12%", left: "40%" },
+    scrollTriggerStart: 0.38,
   },
   {
-    id: "ms-3",
-    title: "Finish Line",
-    desc: "Smooth landing, perfectly in control",
-    scrollPct: 0.82,
-    side: "top",
+    id: "box-3",
+    pct: "5 ★",
+    label: "EXCELLENCE RATING",
+    desc: "Vetted motion & UI design",
+    bg: "#2c3e50", // Dark
+    textColor: "#fff",
+    pos: { top: "12%", left: "64%" },
+    scrollTriggerStart: 0.62,
+  },
+  {
+    id: "box-4",
+    pct: "< 10ms",
+    label: "LATENCY SPEED",
+    desc: "Optimized 60fps GSAP pipeline",
+    bg: "#e67e22", // Orange
+    textColor: "#fff",
+    pos: { bottom: "12%", left: "82%" },
+    scrollTriggerStart: 0.82,
   },
 ];
+
+const HEADLINE_TEXT = "WELCOME ITZFIZZ";
 
 export default function ScrollCarSection() {
   const sectionRef = useRef(null);
   const carRef = useRef(null);
   const trailRef = useRef(null);
-  const roadLinesRef = useRef(null);
-  const sectionTitleRef = useRef(null);
+  const letterRefs = useRef([]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // --- Main scroll-driven timeline ---
+      // Timeline for car movement + green trail across scroll
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
           end: "bottom bottom",
-          scrub: 1.5, // Smooth lag-behind — the higher the number the more lag
+          scrub: 1.2,
         },
       });
 
-      // Car drives left → right across viewport
+      // 1. Car moves from left (-15%) to right (110%)
       tl.fromTo(
         carRef.current,
-        { xPercent: -120 },
-        { xPercent: 120, ease: "none" },
+        { left: "-15%" },
+        { left: "110%", ease: "none" },
         0
       );
 
-      // Trail expands behind car (neon glow)
+      // 2. Green trail width grows behind car (0% to 100%)
       tl.fromTo(
         trailRef.current,
         { width: "0%" },
-        { width: "115%", ease: "none" },
+        { width: "100%", ease: "none" },
         0
       );
 
-      // Road center dashes scroll for parallax feel
-      tl.fromTo(
-        roadLinesRef.current,
-        { x: "0%" },
-        { x: "-50%", ease: "none" },
-        0
-      );
-
-      // Section label fades out as car passes midpoint
-      tl.to(
-        sectionTitleRef.current,
-        { opacity: 0, y: -24, ease: "power2.in", duration: 0.2 },
-        0.55
-      );
-
-      // Milestone pop-ins
-      MILESTONES.forEach((ms) => {
-        const el = document.getElementById(ms.id);
-        if (!el) return;
-        const enterAt = ms.scrollPct - 0.04;
-        const exitAt = ms.scrollPct + 0.15;
-
-        // Fade in
-        tl.fromTo(
-          el,
-          { opacity: 0, scale: 0.82, y: ms.side === "top" ? -20 : 20 },
-          { opacity: 1, scale: 1, y: 0, duration: 0.12, ease: "back.out(2)" },
-          enterAt
-        );
-        // Fade out
+      // 3. Letters reveal as car drives over them
+      letterRefs.current.forEach((letter, index) => {
+        if (!letter) return;
+        const letterProgress = index / HEADLINE_TEXT.length;
         tl.to(
+          letter,
+          {
+            color: "#39ff14",
+            textShadow: "0 0 15px rgba(57, 255, 20, 0.9), 0 0 30px rgba(57, 255, 20, 0.4)",
+            scale: 1.15,
+            duration: 0.05,
+            yoyo: true,
+            repeat: 1,
+            ease: "power1.inOut",
+          },
+          letterProgress * 0.85
+        );
+      });
+
+      // 4. Stat boxes animate in based on scroll depth
+      STAT_BOXES.forEach((box) => {
+        const el = document.getElementById(box.id);
+        if (!el) return;
+
+        gsap.fromTo(
           el,
-          { opacity: 0, scale: 0.88, duration: 0.08, ease: "power2.in" },
-          exitAt
+          { opacity: 0, y: 30, scale: 0.85 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.6,
+            ease: "back.out(1.7)",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: `top+=${box.scrollTriggerStart * 100}% top`,
+              toggleActions: "play reverse play reverse",
+            },
+          }
         );
       });
     }, sectionRef);
@@ -110,256 +135,168 @@ export default function ScrollCarSection() {
     <section
       ref={sectionRef}
       id="scroll-section"
-      style={{ height: "260vh", background: "#060606" }}
+      className="relative w-full"
+      style={{ height: "300vh", background: "#111" }}
     >
-      {/* Top gradient divider */}
+      {/* Sticky viewport track container */}
       <div
-        className="w-full"
-        style={{
-          height: "1px",
-          background:
-            "linear-gradient(90deg, transparent 0%, #39ff14 50%, transparent 100%)",
-        }}
-      />
-
-      {/* Sticky viewport */}
-      <div
-        className="sticky top-0 overflow-hidden flex flex-col items-center justify-center"
-        style={{ height: "100vh", background: "#0a0a0a" }}
+        className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-center items-center select-none"
+        style={{ backgroundColor: "#d1d1d1" }}
       >
-        {/* Background grid */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(57,255,20,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(57,255,20,0.018) 1px, transparent 1px)",
-            backgroundSize: "80px 80px",
-          }}
-        />
-
-        {/* Section label */}
-        <div
-          ref={sectionTitleRef}
-          className="absolute top-14 left-1/2 -translate-x-1/2 text-center z-20 pointer-events-none"
-        >
-          <p
-            className="text-xs tracking-[0.45em] uppercase font-semibold"
-            style={{ color: "#39ff14" }}
-          >
-            Scroll-Driven Animation
+        {/* Track Title / Subtitle Header */}
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 text-center z-20 pointer-events-none">
+          <p className="text-xs font-bold tracking-[0.4em] uppercase text-gray-700">
+            SCROLL-DRIVEN RACE TRACK
           </p>
-          <p className="text-xs mt-1" style={{ color: "#383838" }}>
-            Scroll to drive the car
+          <p className="text-[11px] font-medium tracking-widest text-gray-500 mt-1">
+            MCLAREN 720S &bull; REVEAL ANIMATION
           </p>
         </div>
 
-        {/* Milestone text boxes */}
-        {MILESTONES.map((ms) => (
+        {/* 4 Stat Boxes positioned on the track area */}
+        {STAT_BOXES.map((box) => (
           <div
-            key={ms.id}
-            id={ms.id}
-            className="absolute z-30 px-5 py-4 rounded-2xl text-center pointer-events-none"
+            key={box.id}
+            id={box.id}
+            className="absolute z-30 p-5 rounded-2xl shadow-2xl flex flex-col items-center text-center pointer-events-none transition-transform duration-300"
             style={{
-              opacity: 0,
-              top: ms.side === "top" ? "12%" : undefined,
-              bottom: ms.side === "bottom" ? "28%" : undefined,
-              left: "50%",
-              transform: "translateX(-50%)",
-              minWidth: "220px",
-              background: "rgba(5,5,5,0.75)",
-              border: "1px solid rgba(57,255,20,0.28)",
-              backdropFilter: "blur(14px)",
-              boxShadow: "0 0 30px rgba(57,255,20,0.08)",
+              backgroundColor: box.bg,
+              color: box.textColor,
+              minWidth: "180px",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              ...box.pos,
+              transform: "translate(-50%, -50%)",
             }}
           >
-            <p className="text-sm font-bold mb-1" style={{ color: "#39ff14" }}>
-              {ms.title}
-            </p>
-            <p className="text-xs" style={{ color: "#777" }}>
-              {ms.desc}
-            </p>
+            <span className="text-3xl font-black tracking-tight mb-1">
+              {box.pct}
+            </span>
+            <span className="text-[10px] font-bold tracking-widest uppercase opacity-90">
+              {box.label}
+            </span>
+            <span className="text-[11px] font-medium opacity-75 mt-0.5">
+              {box.desc}
+            </span>
           </div>
         ))}
 
-        {/* Road Section */}
+        {/* Central Road Canvas */}
         <div
-          className="relative w-full"
-          style={{ height: "200px" }}
+          className="relative w-full flex items-center justify-center"
+          style={{ height: "240px", backgroundColor: "#18181b" }}
         >
-          {/* Road surface */}
+          {/* Yellow outer boundary lines */}
           <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(180deg, #181818 0%, #121212 50%, #181818 100%)",
-              borderTop: "2px solid #222",
-              borderBottom: "2px solid #222",
-            }}
+            className="absolute top-0 left-0 right-0 h-1.5"
+            style={{ background: "#f59e0b" }}
+          />
+          <div
+            className="absolute bottom-0 left-0 right-0 h-1.5"
+            style={{ background: "#f59e0b" }}
           />
 
-          {/* Yellow edge lines */}
+          {/* White dashed road line */}
           <div
-            className="absolute left-0 right-0"
-            style={{
-              top: "10px",
-              height: "2px",
-              background: "rgba(255, 220, 70, 0.35)",
-            }}
-          />
-          <div
-            className="absolute left-0 right-0"
-            style={{
-              bottom: "10px",
-              height: "2px",
-              background: "rgba(255, 220, 70, 0.35)",
-            }}
-          />
-
-          {/* Center dashed road markings (GSAP moves these for parallax) */}
-          <div
-            ref={roadLinesRef}
-            className="absolute flex items-center gap-8"
-            style={{
-              top: "50%",
-              left: "-50%",
-              width: "200%",
-              transform: "translateY(-50%)",
-            }}
+            className="absolute w-full flex justify-between px-4 z-0"
+            style={{ top: "50%", transform: "translateY(-50%)" }}
           >
-            {Array.from({ length: 44 }).map((_, i) => (
+            {Array.from({ length: 30 }).map((_, i) => (
               <div
                 key={i}
-                style={{
-                  width: "56px",
-                  height: "4px",
-                  background: "rgba(255,255,255,0.1)",
-                  borderRadius: "2px",
-                  flexShrink: 0,
-                  willChange: "transform",
-                }}
+                className="h-1 w-8 rounded-full"
+                style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
               />
             ))}
           </div>
 
-          {/* Neon trail behind car */}
+          {/* Green Trail line that expands behind car */}
           <div
             ref={trailRef}
-            className="absolute top-0 left-0 h-full"
+            className="absolute left-0 z-10 pointer-events-none"
             style={{
-              width: "0%",
+              top: "50%",
+              transform: "translateY(-50%)",
+              height: "6px",
               background:
-                "linear-gradient(90deg, transparent 0%, rgba(57,255,20,0.04) 60%, rgba(57,255,20,0.15) 100%)",
-              zIndex: 1,
-              willChange: "width",
+                "linear-gradient(90deg, transparent 0%, #39ff14 30%, #39ff14 100%)",
+              boxShadow:
+                "0 0 15px #39ff14, 0 0 30px #39ff14, 0 0 45px rgba(57,255,20,0.8)",
+              borderRadius: "3px",
             }}
           />
 
-          {/* Car wrapper — GSAP drives xPercent */}
+          {/* Headline letters on road path */}
+          <div className="relative z-10 flex items-center justify-center gap-2 md:gap-4 font-black tracking-widest text-2xl md:text-5xl pointer-events-none">
+            {HEADLINE_TEXT.split("").map((char, index) => (
+              <span
+                key={index}
+                ref={(el) => (letterRefs.current[index] = el)}
+                className="transition-colors duration-200"
+                style={{
+                  color: char === " " ? "transparent" : "rgba(255,255,255,0.25)",
+                  display: "inline-block",
+                  minWidth: char === " " ? "1rem" : "auto",
+                }}
+              >
+                {char === " " ? "\u00A0" : char}
+              </span>
+            ))}
+          </div>
+
+          {/* Top-Down McLaren Car Container */}
           <div
             ref={carRef}
-            className="absolute"
+            className="absolute z-20 pointer-events-none flex items-center"
             style={{
-              bottom: "0px",
-              left: "0%",
-              zIndex: 10,
-              willChange: "transform",
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: "200px",
+              height: "100px",
             }}
           >
-            {/* Speed streaks */}
-            <div
-              className="absolute flex flex-col gap-1.5"
-              style={{
-                right: "calc(100% - 10px)",
-                top: "50%",
-                transform: "translateY(-50%)",
-              }}
-            >
-              {[70, 45, 25].map((w, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: `${w}px`,
-                    height: "2px",
-                    background: `rgba(57,255,20,${0.55 - i * 0.16})`,
-                    borderRadius: "1px",
-                    marginLeft: "auto",
-                  }}
-                />
-              ))}
-            </div>
-
-            {/* Car image */}
             <Image
-              src="/car.png"
-              alt="Sports car driving across the screen in a scroll animation"
-              width={300}
-              height={170}
+              src="/mclaren-top.png"
+              alt="Orange McLaren Top View Cutout"
+              width={220}
+              height={120}
+              className="object-contain"
               style={{
-                objectFit: "contain",
-                filter:
-                  "drop-shadow(0 0 22px rgba(57,255,20,0.35)) drop-shadow(0 12px 24px rgba(0,0,0,0.9))",
-                userSelect: "none",
-                pointerEvents: "none",
-                display: "block",
+                filter: "drop-shadow(0 12px 20px rgba(0,0,0,0.7))",
+                width: "auto",
+                height: "auto",
               }}
               priority
             />
-
-            {/* Ground shadow */}
-            <div
-              style={{
-                width: "240px",
-                height: "14px",
-                background:
-                  "radial-gradient(ellipse, rgba(0,0,0,0.75) 0%, transparent 70%)",
-                marginTop: "-6px",
-                marginLeft: "auto",
-                marginRight: "auto",
-              }}
-            />
           </div>
         </div>
 
-        {/* Progress indicator */}
-        <div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-20"
-        >
-          <span className="text-xs tracking-widest font-mono" style={{ color: "#2a2a2a" }}>
-            0%
-          </span>
-          <div
-            className="relative overflow-hidden rounded-full"
-            style={{ width: "180px", height: "2px", background: "rgba(57,255,20,0.08)" }}
-          >
+        {/* Progress Bar & Instructions at bottom */}
+        <div className="absolute bottom-6 flex flex-col items-center gap-2 z-20 pointer-events-none">
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-mono tracking-widest text-gray-600">
+              START
+            </span>
             <div
-              id="progress-bar"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                height: "100%",
-                width: "0%",
-                background: "#39ff14",
-                borderRadius: "9999px",
-                boxShadow: "0 0 6px rgba(57,255,20,0.8)",
-              }}
-            />
+              className="relative w-48 h-1 rounded-full overflow-hidden"
+              style={{ backgroundColor: "rgba(0,0,0,0.15)" }}
+            >
+              <div
+                id="progress-bar"
+                className="h-full rounded-full transition-all duration-75"
+                style={{ backgroundColor: "#10b981", width: "0%" }}
+              />
+            </div>
+            <span className="text-[10px] font-mono tracking-widest text-gray-600">
+              FINISH
+            </span>
           </div>
-          <span className="text-xs tracking-widest font-mono" style={{ color: "#2a2a2a" }}>
-            100%
+          <span className="text-[10px] font-medium tracking-widest uppercase text-gray-500">
+            Scroll down to drive
           </span>
         </div>
       </div>
-
-      {/* Bottom gradient divider */}
-      <div
-        className="w-full"
-        style={{
-          height: "1px",
-          background:
-            "linear-gradient(90deg, transparent 0%, #39ff14 50%, transparent 100%)",
-        }}
-      />
     </section>
   );
 }
+

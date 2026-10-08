@@ -186,7 +186,7 @@ export default function HeroSection() {
           style={{
             fontSize: "clamp(2.8rem, 9vw, 9rem)",
             letterSpacing: "0.22em",
-            fontFamily: "'Space Grotesk', sans-serif",
+            fontFamily: "var(--font-display)",
             perspective: "1000px",
           }}
         >

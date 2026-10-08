@@ -18,7 +18,7 @@ export default function Footer() {
         <div>
           <span
             className="text-2xl font-black tracking-widest"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{ fontFamily: "var(--font-display)" }}
           >
             <span className="text-white">ItZ</span>
             <span style={{ color: "#39ff14" }}>FiZZ</span>
