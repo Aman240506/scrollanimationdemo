@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Scroll-Driven Hero Car Animation (amanifitz)
 
-## Getting Started
+A premium, performant scroll-driven hero section animation built with **Next.js**, **React**, **GSAP**, **ScrollTrigger**, and **Tailwind CSS**. Inspired by [Paras Chaturvedi's Car Scroll Animation](https://paraschaturvedi.github.io/car-scroll-animation).
 
-First, run the development server:
+## 🚀 Live Demo & Repository
+
+- **Live Webpage**: [https://aman240506.github.io/amanifitz/](https://aman240506.github.io/amanifitz/) (or Vercel / GitHub Pages link)
+- **GitHub Repository**: [https://github.com/Aman240506/amanifitz](https://github.com/Aman240506/amanifitz)
+
+---
+
+## 🌟 Key Features
+
+1. **Hero Section (Above the Fold)**
+   - Letter-spaced headline: `W E L C O M E   I T Z F I Z Z`
+   - Smooth initial load animation with 3D letter flips, neon line expansion, and spring-loaded stat card reveals.
+   - Interactive ambient glow and bouncing scroll indicator.
+
+2. **Scroll-Driven Car Section (Core Feature)**
+   - **McLaren 720S Top-Down View**: 4K transparent RGBA car asset centered vertically on the road.
+   - **Horizontal Translation**: Car moves left-to-right tied directly to scroll progress via GSAP `ScrollTrigger` (`scrub: 1`).
+   - **Expanding Green Trail**: Dynamic neon trail line (`#45db7d`) extending behind the car.
+   - **Letter Reveal**: `WELCOME ITZFIZZ` text lights up in green with glowing text shadow as the car passes over each letter.
+   - **Staggered Stat Cards**: 4 floating statistics cards (`58%`, `23%`, `27%`, `40%`) popping in smoothly on scroll.
+
+3. **Performance & Motion Guidelines**
+   - Built with hardware-accelerated CSS `transform` properties (`translate3d`, `scale`) for 60fps animations without layout reflows.
+   - Decoupled CSS `sticky top-0` viewport positioning from GSAP `ScrollTrigger` scrub logic to prevent layout conflicts and keep footer scrolling natural.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Library**: React 19
+- **Animation**: GSAP 3.12 (GreenSock) + ScrollTrigger Plugin
+- **Styling**: Tailwind CSS + Vanilla CSS Design System
+- **Language**: JavaScript (ES6+)
+
+---
+
+## 🏁 Getting Started Locally
+
+### Prerequisites
+- Node.js 18.0 or higher
+- npm, yarn, or pnpm
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/Aman240506/amanifitz.git
+
+# Navigate to project directory
+cd amanifitz
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Deployment to GitHub Pages / Vercel
 
-## Learn More
+```bash
+# Production Build
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📄 License
+MIT © Aman
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
